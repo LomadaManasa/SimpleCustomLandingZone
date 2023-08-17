@@ -134,6 +134,18 @@ resource "aws_organizations_policy" "scp" {
     ]
   })
 }
+resource "aws_iam_policy" "admin_policy" {
+  name   = "SSOAdminPolicy"
+  policy = data.aws_iam_policy_document.admin_policy.json
+}
+
+data "aws_iam_policy_document" "admin_policy" {
+  statement {
+    actions   = ["*"]
+    resources = ["*"]
+  }
+}
+
 resource "aws_organizations_policy_attachment" "scp_attachment" {
   policy_id = aws_organizations_policy.scp.id
   target_id = aws_organizations_account.member_accounts.id
@@ -151,16 +163,7 @@ resource "aws_ssoadmin_permission_set" "sso_permissions" {
   session_duration = "PT1H" # Optional: Set session duration
 }
 resource "aws_ssoadmin_permission_set_inline_policy" "sso_permissions_inline_policy" {
-  inline_policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": "sso:CreateManagedApplicationInstance",
-        "Resource": "*"
-      }
-    ]
-  })
+  inline_policy = data.aws_iam_policy_document.admin_policy.json
   permission_set_arn = aws_ssoadmin_permission_set.sso_permissions.arn
   instance_arn = tolist(data.aws_ssoadmin_instances.testSSO.arns)[0]
 }
