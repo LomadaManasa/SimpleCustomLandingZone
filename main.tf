@@ -1,7 +1,6 @@
 resource "aws_organizations_organization" "Root" {
   feature_set = "ALL"
   enabled_policy_types = [
-    "TAG_POLICY",
     "SERVICE_CONTROL_POLICY"
   ]
   aws_service_access_principals = [
@@ -134,17 +133,7 @@ resource "aws_organizations_policy" "scp" {
     ]
   })
 }
-resource "aws_iam_policy" "admin_policy" {
-  name   = "SSOAdminPolicy"
-  policy = data.aws_iam_policy_document.admin_policy.json
-}
 
-data "aws_iam_policy_document" "admin_policy" {
-  statement {
-    actions   = ["*"]
-    resources = ["*"]
-  }
-}
 
 resource "aws_organizations_policy_attachment" "scp_attachment" {
   policy_id = aws_organizations_policy.scp.id
@@ -161,6 +150,17 @@ resource "aws_ssoadmin_permission_set" "sso_permissions" {
   name             = "MySSOPermissionSet"
   description      = "My SSO permission set"
   session_duration = "PT1H" # Optional: Set session duration
+}
+resource "aws_iam_policy" "admin_policy" {
+  name   = "SSOAdminPolicy"
+  policy = data.aws_iam_policy_document.admin_policy.json
+}
+
+data "aws_iam_policy_document" "admin_policy" {
+  statement {
+    actions   = ["*"]
+    resources = ["*"]
+  }
 }
 resource "aws_ssoadmin_permission_set_inline_policy" "sso_permissions_inline_policy" {
   inline_policy = data.aws_iam_policy_document.admin_policy.json
